@@ -1,4 +1,4 @@
-# YH_Electricity ⚡
+# Svitlo ⚡
 
 Real-time electricity status for apartment buildings in Kyiv, with Telegram alerts within about a minute when power goes off or comes back.
 
