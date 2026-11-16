@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "svitlo",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+
+  // D1 database. database_id is a placeholder until the remote database is
+  // created in Step 4 (`wrangler d1 create svitlo-db`); local dev ignores it.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "svitlo-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Status logic runs every minute (Step 3).
+  "triggers": { "crons": ["* * * * *"] }
+}

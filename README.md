@@ -41,7 +41,7 @@ flowchart LR
 
 ## Roadmap
 
-- [ ] **Phase 0:** setup (domain, accounts, repo)
+- [x] **Phase 0:** setup (domain, accounts, repo)
 - [ ] **Phase 1:** sensor prototype
 - [ ] **Phase 2:** backend core (Workers, D1, cron)
 - [ ] **Phase 3:** notification fan-out (Queues)
