@@ -1,0 +1,2 @@
+# Copy to .dev.vars and fill in. Generate a key with: openssl rand -base64 32
+MASTER_KEY=""

@@ -1,15 +1,26 @@
 {
   "compilerOptions": {
     "target": "es2024",
-    "lib": ["es2024"],
+    "lib": [
+      "es2024"
+    ],
     "module": "es2022",
     "moduleResolution": "bundler",
-    "types": ["./worker-configuration.d.ts", "@cloudflare/vitest-plugin/types"],
+    "types": [
+      "./worker-configuration.d.ts",
+      "@cloudflare/vitest-plugin/types"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": [
+    "src",
+    "test",
+    "vitest.config.ts"
+  ]
 }
