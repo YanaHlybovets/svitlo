@@ -25,3 +25,14 @@ Durations are measured from the sensor's own timestamp of the change.
 ## Data model (D1)
 
 `buildings`, `sensors`, `events`, `users`, `subscriptions`, `audit_log`. See the plan for columns. Details will be added in Phase 2.
+
+## Sensor report format
+
+`POST /api/v1/report`, JSON body of at most 1 KB, signed with the sensor's key:
+
+```json
+{ "sensor_id": "s-revutskogo-54a", "grid": "off", "since": 1794842600, "ts": 1794842669,
+  "battery_mv": 3900, "wifi_rssi": -63, "fw": "0.1.0" }
+```
+
+Header `X-Signature: <hex HMAC-SHA256 of the exact body>`. `since` is the sensor's time the current grid state began; `ts` is when the report was sent. Responses: `204` accepted, `400` malformed, `401` any authentication failure, `413` too large. Details in [ADR 0002](decisions/0002-signed-reports-replay-guard.md).

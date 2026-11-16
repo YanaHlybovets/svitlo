@@ -27,3 +27,6 @@ build/
 .DS_Store
 .idea/
 *.swp
+
+# Sensor keys saved by scripts/sensor-key.ts
+.sensors/

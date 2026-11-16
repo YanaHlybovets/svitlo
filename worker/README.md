@@ -7,8 +7,9 @@ Cloudflare Worker: the sensor API, status logic, Telegram bot and alert fan-out.
 ```sh
 cd worker
 npm install
-npm run db:migrate:local   # create the local D1 database and apply migrations
-npm run dev                # http://localhost:8787
+cp .dev.vars.example .dev.vars   # then put a key in it: openssl rand -base64 32
+npm run db:migrate:local         # create the local D1 database and apply migrations
+npm run dev                      # http://localhost:8787
 ```
 
 - `GET /api/v1/health` returns `{"ok":true}`
@@ -17,6 +18,19 @@ npm run dev                # http://localhost:8787
 
 Everything runs on your machine. No Cloudflare account is needed until the first deploy.
 
+## Fake sensor
+
+Until the ESP32 exists, a script sends the same signed reports the firmware will.
+
+```sh
+npm run sensor-key -- add revutskogo-54a            # once: creates the sensor and its key
+npm run fake-sensor -- s-revutskogo-54a             # interactive: o = on, f = off, w = Wi-Fi down/up, q = quit
+npm run fake-sensor -- s-revutskogo-54a once off    # one report
+npm run fake-sensor -- s-revutskogo-54a attack      # replay, bad signature, stale time: all must be rejected
+```
+
+The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotate` instead of `add` to issue a new key. If `npm run dev` says the port is in use, an old dev server is still running: `lsof -ti tcp:8787 | xargs kill`.
+
 ## Commands
 
 | Command | What it does |
@@ -24,6 +38,8 @@ Everything runs on your machine. No Cloudflare account is needed until the first
 | `npm test` | Tests inside the real Workers runtime, with a fresh D1 per test file |
 | `npm run typecheck` | TypeScript check |
 | `npm run types` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
+| `npm run sensor-key -- add\|rotate <slug>` | Create a sensor or issue it a new key |
+| `npm run fake-sensor -- <sensor-id> [once on\|off \| attack]` | Send signed test reports |
 | `npm run deploy` | Deploy to Cloudflare (Step 4) |
 
 ## Layout
@@ -32,6 +48,9 @@ Everything runs on your machine. No Cloudflare account is needed until the first
 |---|---|
 | `src/index.ts` | Entry point: HTTP routes and the cron handler |
 | `migrations/` | D1 schema, applied in order (`0001_init.sql`, …) |
+| `src/report.ts` | `POST /api/v1/report`: signature, time and replay checks |
+| `src/crypto.ts` | HMAC signing and AES-GCM key encryption (shared with scripts) |
+| `scripts/` | `sensor-key.ts`, `fake-sensor.ts` (run with Node 22.18+, no build step) |
 | `test/` | Vitest tests (`@cloudflare/vitest-plugin`) |
 | `wrangler.jsonc` | Worker config: bindings, cron |
 
@@ -40,12 +59,16 @@ Everything runs on your machine. No Cloudflare account is needed until the first
 | Endpoint | Status |
 |---|---|
 | `GET /api/v1/health` | ✅ |
-| `GET /api/v1/buildings` | ✅ basic version; CDN caching comes in Step 3 |
-| `POST /api/v1/report` | Step 2 |
+| `GET /api/v1/buildings` | ✅ basic version with `updated_at`; CDN caching comes in Step 3 |
+| `POST /api/v1/report` | ✅ signed reports (see [ADR 0002](../docs/decisions/0002-signed-reports-replay-guard.md)) |
 | `GET /api/v1/buildings/:slug/history` | Step 3 |
 | `POST /tg/webhook` | Step 5 |
 | Cron, every minute | Step 3 (stub now) |
 
 ## Secrets
 
-None yet. From Step 2: local secrets go in `worker/.dev.vars` (git-ignored), production secrets via `wrangler secret put`. Never commit them.
+| Secret | Purpose |
+|---|---|
+| `MASTER_KEY` | 32 random bytes, base64. Encrypts sensor keys in D1 |
+
+Local secrets go in `worker/.dev.vars` (git-ignored); production secrets via `wrangler secret put`. Never commit them.
