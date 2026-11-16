@@ -10,21 +10,26 @@ Data flows one way, from sensors out to users. The cron job is the **only** part
 
 ## Status logic
 
+Implemented in `worker/src/status.ts` (a pure function with one test per row) and run every minute by `worker/src/cron.ts`. See [ADR 0003](decisions/0003-grid-change-log.md).
+
 | Situation | Status | Subscribers |
 |---|---|---|
-| Sensor reports grid off, confirmed by a report 30 s later | OFF | Alert at once |
-| Sensor reports grid on for 60 s or more | ON | Alert |
-| Outage shorter than 60 s | (logged in history) | No alert |
-| Silent for over 3 min, last report "off" | Stays OFF | No new alert |
-| Silent for over 3 min, last report "on" | NO DATA | No alert; admin alerted |
-| Sensor back after silence | From buffered state | Alert only if state changed |
-| Maintenance mode | Maintenance | No alerts |
+| Grid off, confirmed by a report at least 30 s after it began | OFF | Alert |
+| Grid on for 60 s or more | ON | Alert, with the outage length |
+| Outage shorter than 30 s (flicker) | Unchanged; shown in history | No alert |
+| Outage that began and ended between two cron runs | Recorded from the change log | Alert |
+| Silent for over 3 min, last report "off" | OFF | No new alert |
+| Silent for over 3 min, last report "on" | NO DATA | No alert (admin alert in Step 6) |
+| Back after silence, same state | Previous status, original "since" | No alert |
+| Back after silence, state changed | New status, real start time | Alert |
+| Maintenance | Tracked as usual | No alerts |
+| First status of a new sensor | ON or OFF | No alert |
 
-Durations are measured from the sensor's own timestamp of the change.
+Durations are measured from the sensor's own timestamps, not from when the cron job noticed.
 
 ## Data model (D1)
 
-`buildings`, `sensors`, `events`, `users`, `subscriptions`, `audit_log`. See the plan for columns. Details will be added in Phase 2.
+`buildings`, `sensors`, `grid_changes`, `events`, `users`, `subscriptions`, `audit_log`. The schema lives in `worker/migrations/`.
 
 ## Sensor report format
 

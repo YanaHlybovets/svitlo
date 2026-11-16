@@ -4,13 +4,14 @@
 //   node scripts/fake-sensor.ts <sensor-id> [--url http://localhost:8787]
 //       Interactive: o = grid on, f = grid off, w = Wi-Fi down/up, q = quit.
 //       Reports every 60 s, at once on a change, and again 30 s after it.
-//   node scripts/fake-sensor.ts <sensor-id> once on|off
+//   node scripts/fake-sensor.ts <sensor-id> once on|off [--for <seconds>]
+//       One report. --for says the state began that many seconds ago.
 //   node scripts/fake-sensor.ts <sensor-id> attack
 //       Sends a valid report, then a replay, a bad signature and a stale one.
 //
 // The key is read from worker/.sensors/<sensor-id>.json (made by sensor-key.ts).
 
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fromBase64, signBody } from "../src/crypto.ts";
 
 type Grid = "on" | "off";
@@ -18,6 +19,8 @@ type Grid = "on" | "off";
 const args = process.argv.slice(2);
 const urlFlag = args.indexOf("--url");
 const baseUrl = urlFlag >= 0 ? args.splice(urlFlag, 2)[1] : "http://localhost:8787";
+const forFlag = args.indexOf("--for");
+const forSeconds = forFlag >= 0 ? Number(args.splice(forFlag, 2)[1]) : 0;
 const [sensorId, mode = "run", modeArg] = args;
 if (!sensorId) {
   console.error("Usage: node scripts/fake-sensor.ts <sensor-id> [run | once on|off | attack] [--url URL]");
@@ -25,12 +28,14 @@ if (!sensorId) {
 }
 
 const file = new URL(`../.sensors/${sensorId}.json`, import.meta.url);
-const key = fromBase64((JSON.parse(readFileSync(file, "utf8")) as { key: string }).key);
+const saved = JSON.parse(readFileSync(file, "utf8")) as { sensor_id: string; key: string; last_ts?: number };
+const key = fromBase64(saved.key);
 const endpoint = `${baseUrl}/api/v1/report`;
 
 let grid: Grid = "on";
 let since = nowS();
-let lastTs = 0;
+// Remembered between runs, so two quick runs never reuse a timestamp (the server rejects that as a replay).
+let lastTs = saved.last_ts ?? 0;
 let wifiDown = false;
 
 function nowS(): number {
@@ -40,6 +45,7 @@ function nowS(): number {
 /** Like the firmware: ts must always increase, even within one second. */
 function nextTs(): number {
   lastTs = Math.max(nowS(), lastTs + 1);
+  writeFileSync(file, JSON.stringify({ ...saved, last_ts: lastTs }, null, 2) + "\n", { mode: 0o600 });
   return lastTs;
 }
 
@@ -81,7 +87,8 @@ async function report(reason: string): Promise<void> {
 if (mode === "once") {
   if (modeArg !== "on" && modeArg !== "off") throw new Error("once needs on or off");
   grid = modeArg;
-  await report("once");
+  since = nowS() - forSeconds;
+  await report(forSeconds ? `once (state began ${forSeconds} s ago)` : "once");
 } else if (mode === "attack") {
   const check = (name: string, got: number, want: number) =>
     console.log(`${got === want ? "PASS" : "FAIL"}  ${name}: HTTP ${got} (expected ${want})`);
