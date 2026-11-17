@@ -6,7 +6,7 @@ Real-time electricity status for apartment buildings in Kyiv, with Telegram aler
 
 ## How it works
 
-Each building has **one sensor**: an ESP32 board on its own 18650 battery, powered by an ordinary USB charger in a wall socket. The sensor reports whether that charger has power every 60 s, and **at once** when it changes. Because the board runs on its own battery, it can report "grid off" instead of just going silent. A dead Wi-Fi router therefore shows as *no data*, never as a false blackout.
+Each building has **one sensor**: an ESP32 board with its own LTE connection and 18650 battery, powered by an ordinary USB charger in a wall socket. The sensor reports whether that charger has power every 60 s, and **at once** when it changes. Because the board runs on its own battery, it can report "grid off" instead of just going silent. Because it has its own mobile connection, it doesn't depend on the host's router or internet provider, which often lose power in a blackout too.
 
 ```mermaid
 flowchart LR
