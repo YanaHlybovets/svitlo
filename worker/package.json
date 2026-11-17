@@ -15,7 +15,9 @@
     "fake-sensor": "node scripts/fake-sensor.ts",
     "db:migrate:remote": "wrangler d1 migrations apply svitlo-db --remote",
     "tail": "wrangler tail",
-    "telegram-setup": "node scripts/telegram-setup.ts"
+    "telegram-setup": "node scripts/telegram-setup.ts",
+    "dev:admin": "wrangler dev -c wrangler.admin.jsonc --port 8788 --local-upstream localhost:8788",
+    "deploy:admin": "wrangler deploy -c wrangler.admin.jsonc --secrets-file ~/.svitlo/admin.json"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.8.3",
