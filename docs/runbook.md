@@ -38,8 +38,15 @@ MASTER_KEY=… npm run sensor-key -- rotate <slug> --remote
 npx wrangler d1 execute svitlo-db --remote --command "UPDATE sensors SET enabled = 1 WHERE id = 's-<slug>'"
 ```
 
+## Telegram bot
+
+Set up or refresh the webhook, commands and descriptions: `npm run telegram-setup`. Check it with the last line of that output (`pending` should be 0, with no last error).
+
+**Replace a leaked bot token:** @BotFather → `/revoke` → choose the bot. Put the new token in `~/.svitlo/production.json`, deploy with `--secrets-file`, then run `npm run telegram-setup`.
+
+**Receive "I want a sensor" requests:** add `"ADMIN_CHAT_ID": "<your chat id>"` to `~/.svitlo/production.json` and deploy with `--secrets-file`.
+
 ## To do
 
-- [ ] Rotate the Telegram bot token (Step 5)
 - [ ] Restore the D1 database: D1 Time Travel, `wrangler d1 time-travel restore svitlo-db --timestamp=…`
 - [ ] What to do when a free-plan daily limit is hit

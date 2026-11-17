@@ -2,7 +2,7 @@
 
 ## Components
 
-1. **Sensor** (one per building): ESP32 with an 18650 battery, measuring whether its wall USB charger has power.
+1. **Sensor** (one per building): ESP32 with an LTE modem and an 18650 battery, measuring whether its wall USB charger has power. It has its own mobile connection, so it doesn't depend on the host's internet ([ADR 0005](decisions/0005-lte-sensors.md)).
 2. **Backend:** Cloudflare Workers, D1, Queues, Cron Triggers.
 3. **Outputs:** Telegram bot (per-address subscriptions) and a static website on Pages.
 

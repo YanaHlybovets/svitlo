@@ -27,6 +27,11 @@
     }
   ],
 
+  // Per-chat limit for the Telegram bot: 30 updates a minute.
+  "ratelimits": [
+    { "name": "BOT_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
+  ],
+
   // Status logic runs every minute (Step 3).
   "triggers": { "crons": ["* * * * *"] }
 }

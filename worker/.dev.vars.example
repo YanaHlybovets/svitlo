@@ -1,2 +1,7 @@
 # Copy to .dev.vars and fill in. Generate a key with: openssl rand -base64 32
 MASTER_KEY=""
+# Telegram (production values live in ~/.svitlo/production.json)
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_WEBHOOK_SECRET="local-dev-secret"
+# Your own chat ID, to receive sensor requests (optional)
+ADMIN_CHAT_ID=""

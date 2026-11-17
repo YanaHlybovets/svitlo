@@ -1,6 +1,7 @@
 import { buildingHistory, listBuildings } from "./api.ts";
 import { runStatusCron } from "./cron.ts";
 import { handleReport } from "./report.ts";
+import { handleTelegramWebhook } from "./telegram/webhook.ts";
 
 const HISTORY = /^\/api\/v1\/buildings\/([^/]+)\/history$/;
 
@@ -17,6 +18,7 @@ export default {
     const { pathname } = url;
 
     if (request.method === "POST" && pathname === "/api/v1/report") return handleReport(request, env);
+    if (request.method === "POST" && pathname === "/tg/webhook") return handleTelegramWebhook(request, env);
     if (request.method === "GET") {
       if (pathname === "/api/v1/health") {
         return new Response('{"ok":true}', { headers: { "content-type": "application/json; charset=utf-8" } });

@@ -43,6 +43,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `npm run types` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
 | `npm run sensor-key -- add\|rotate <slug>` | Create a sensor or issue it a new key |
 | `npm run fake-sensor -- <sensor-id> [once on\|off \| attack]` | Send signed test reports |
+| `npm run telegram-setup` | Register the bot's webhook, command menu and descriptions |
 | `npm run db:migrate:remote` | Apply migrations to the production database |
 | `npm run tail` | Live production logs |
 
@@ -56,6 +57,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `src/status.ts` | Status rules (pure function) |
 | `src/cron.ts` | Every-minute job: applies the rules, writes events |
 | `src/api.ts` | Public read-only API with edge caching |
+| `src/telegram/` | Bot: `bot.ts` (commands and buttons), `text.ts` (Ukrainian/English texts, Kyiv time, alert format), `search.ts` (address search), `webhook.ts` |
 | `src/crypto.ts` | HMAC signing and AES-GCM key encryption (shared with scripts) |
 | `scripts/` | `sensor-key.ts`, `fake-sensor.ts` (run with Node 22.18+, no build step) |
 | `test/` | Vitest tests (`@cloudflare/vitest-plugin`) |
@@ -69,7 +71,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `GET /api/v1/buildings` | ✅ cached 15 s |
 | `POST /api/v1/report` | ✅ signed reports (see [ADR 0002](../docs/decisions/0002-signed-reports-replay-guard.md)) |
 | `GET /api/v1/buildings/:slug/history?days=7` | ✅ events and flickers, 1–30 days, cached 60 s |
-| `POST /tg/webhook` | Step 5 |
+| `POST /tg/webhook` | ✅ Telegram bot @yhLightBot (secret-token header required) |
 | Cron, every minute | ✅ status logic ([ADR 0003](../docs/decisions/0003-grid-change-log.md)); alerts are queued in Step 6 |
 
 ## Production
@@ -78,10 +80,23 @@ Live at https://svitlo.yanasworks.com. One Worker serves the website files from 
 
 The fake sensor and the key script take `--remote` to use the production API and keys (`.sensors/remote/`).
 
+## Telegram bot
+
+[@yhLightBot](https://t.me/yhLightBot). Commands: `/start`, `/add`, `/my`, `/status`, `/settings`, `/delete_me`.
+
+- Typing part of an address searches it, in Ukrainian, Russian or Latin spelling ("ревуцького 54а", "revutskogo 54a"), or the user can browse by district.
+- Deep link for websites and QR posters: `https://t.me/yhLightBot?start=b_<slug>`.
+- Only private chats. Every button's data is checked against the database. Each chat is limited to 30 updates a minute (`BOT_LIMITER`).
+- Stored: chat ID, language, quiet hours, subscriptions and sensor requests. `/delete_me` removes them all.
+- Telegram can't reach `localhost`, so the bot is tested with a fake Telegram client (`test/bot.test.ts`) and then live.
+
 ## Secrets
 
 | Secret | Purpose |
 |---|---|
 | `MASTER_KEY` | 32 random bytes, base64. Encrypts sensor keys in D1 |
+| `TELEGRAM_BOT_TOKEN` | From @BotFather |
+| `TELEGRAM_WEBHOOK_SECRET` | Random; Telegram sends it with every update (made by `telegram-setup`) |
+| `ADMIN_CHAT_ID` | Optional: your chat ID, to receive "I want a sensor" requests |
 
 Local secrets go in `worker/.dev.vars` (git-ignored); production secrets via `wrangler secret put`. Never commit them.
