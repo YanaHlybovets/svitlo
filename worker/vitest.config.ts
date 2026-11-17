@@ -11,6 +11,9 @@ export default defineConfig(async () => {
           TEST_MIGRATIONS: migrations,
           // Test-only key; the real one is a Worker secret.
           MASTER_KEY: "dGVzdC1vbmx5LW1hc3Rlci1rZXktMzItYnl0ZXMhISE=",
+          TELEGRAM_BOT_TOKEN: "test-token",
+          TELEGRAM_WEBHOOK_SECRET: "test-webhook-secret",
+          ADMIN_CHAT_ID: "999",
         } },
       }),
     ],

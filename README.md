@@ -37,7 +37,7 @@ flowchart LR
 ## Links
 
 - Website and API: https://svitlo.yanasworks.com (API live; website coming in Phase 5)
-- Telegram bot: *(coming in Phase 4)*
+- Telegram bot: [@yhLightBot](https://t.me/yhLightBot)
 
 ## Roadmap
 
@@ -54,7 +54,7 @@ flowchart LR
 
 ## Security
 
-Secrets (bot token, master key, sensor keys, Wi-Fi passwords) never go in this repository. See [SECURITY.md](SECURITY.md).
+Secrets (bot token, master key, sensor keys, SIM details) never go in this repository. See [SECURITY.md](SECURITY.md).
 
 ## License
 

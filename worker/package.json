@@ -14,7 +14,8 @@
     "sensor-key": "node scripts/sensor-key.ts",
     "fake-sensor": "node scripts/fake-sensor.ts",
     "db:migrate:remote": "wrangler d1 migrations apply svitlo-db --remote",
-    "tail": "wrangler tail"
+    "tail": "wrangler tail",
+    "telegram-setup": "node scripts/telegram-setup.ts"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.8.3",
