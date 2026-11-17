@@ -1,7 +1,8 @@
 // A software stand-in for the ESP32 sensor. It signs reports exactly like the
 // firmware will.
 //
-//   node scripts/fake-sensor.ts <sensor-id> [--url http://localhost:8787]
+//   node scripts/fake-sensor.ts <sensor-id> [--url http://localhost:8787] [--remote]
+//       --remote: the production key and https://svitlo.yanasworks.com
 //       Interactive: o = grid on, f = grid off, w = Wi-Fi down/up, q = quit.
 //       Reports every 60 s, at once on a change, and again 30 s after it.
 //   node scripts/fake-sensor.ts <sensor-id> once on|off [--for <seconds>]
@@ -17,17 +18,19 @@ import { fromBase64, signBody } from "../src/crypto.ts";
 type Grid = "on" | "off";
 
 const args = process.argv.slice(2);
+const remoteFlag = args.indexOf("--remote");
+const remote = remoteFlag >= 0 && args.splice(remoteFlag, 1).length > 0;
 const urlFlag = args.indexOf("--url");
-const baseUrl = urlFlag >= 0 ? args.splice(urlFlag, 2)[1] : "http://localhost:8787";
+const baseUrl = urlFlag >= 0 ? args.splice(urlFlag, 2)[1] : remote ? "https://svitlo.yanasworks.com" : "http://localhost:8787";
 const forFlag = args.indexOf("--for");
 const forSeconds = forFlag >= 0 ? Number(args.splice(forFlag, 2)[1]) : 0;
 const [sensorId, mode = "run", modeArg] = args;
 if (!sensorId) {
-  console.error("Usage: node scripts/fake-sensor.ts <sensor-id> [run | once on|off | attack] [--url URL]");
+  console.error("Usage: node scripts/fake-sensor.ts <sensor-id> [run | once on|off [--for S] | attack] [--remote] [--url URL]");
   process.exit(1);
 }
 
-const file = new URL(`../.sensors/${sensorId}.json`, import.meta.url);
+const file = new URL(`../.sensors/${remote ? "remote/" : ""}${sensorId}.json`, import.meta.url);
 const saved = JSON.parse(readFileSync(file, "utf8")) as { sensor_id: string; key: string; last_ts?: number };
 const key = fromBase64(saved.key);
 const endpoint = `${baseUrl}/api/v1/report`;

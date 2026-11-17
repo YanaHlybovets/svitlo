@@ -3,8 +3,9 @@
 //   node scripts/sensor-key.ts add <building-slug> [--remote]
 //   node scripts/sensor-key.ts rotate <building-slug> [--remote]
 //
-// The key is printed once and saved to .sensors/<sensor-id>.json (git-ignored)
-// for flashing and for the fake sensor. D1 stores it only encrypted.
+// The key is printed once and saved to .sensors/<sensor-id>.json, or with
+// --remote to .sensors/remote/<sensor-id>.json (both git-ignored), for
+// flashing and for the fake sensor. D1 stores it only encrypted.
 // Local: MASTER_KEY is read from .dev.vars. --remote: set MASTER_KEY in the
 // environment to the same value as the Worker secret.
 
@@ -69,13 +70,14 @@ if (rows.length !== 1) {
 }
 
 const keyB64 = toBase64(key);
-mkdirSync(new URL(".sensors/", workerDir), { recursive: true });
+const keyDir = remote ? ".sensors/remote/" : ".sensors/";
+mkdirSync(new URL(keyDir, workerDir), { recursive: true, mode: 0o700 });
 writeFileSync(
-  new URL(`.sensors/${sensorId}.json`, workerDir),
+  new URL(`${keyDir}${sensorId}.json`, workerDir),
   JSON.stringify({ sensor_id: sensorId, key: keyB64 }, null, 2) + "\n",
   { mode: 0o600 },
 );
 
 console.log(`${command === "add" ? "Added" : "Rotated"} ${sensorId} (${remote ? "remote" : "local"} D1)`);
 console.log(`Sensor key (shown once, flash it into the device): ${keyB64}`);
-console.log(`Saved to worker/.sensors/${sensorId}.json (git-ignored)`);
+console.log(`Saved to worker/${keyDir}${sensorId}.json (git-ignored)`);

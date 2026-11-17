@@ -43,7 +43,8 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `npm run types` | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
 | `npm run sensor-key -- add\|rotate <slug>` | Create a sensor or issue it a new key |
 | `npm run fake-sensor -- <sensor-id> [once on\|off \| attack]` | Send signed test reports |
-| `npm run deploy` | Deploy to Cloudflare (Step 4) |
+| `npm run db:migrate:remote` | Apply migrations to the production database |
+| `npm run tail` | Live production logs |
 
 ## Layout
 
@@ -70,6 +71,12 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `GET /api/v1/buildings/:slug/history?days=7` | ✅ events and flickers, 1–30 days, cached 60 s |
 | `POST /tg/webhook` | Step 5 |
 | Cron, every minute | ✅ status logic ([ADR 0003](../docs/decisions/0003-grid-change-log.md)); alerts are queued in Step 6 |
+
+## Production
+
+Live at https://svitlo.yanasworks.com. One Worker serves the website files from `../web` and runs code only for `/api/*` and `/tg/*` ([ADR 0004](../docs/decisions/0004-worker-static-assets.md)). See the [runbook](../docs/runbook.md) to deploy.
+
+The fake sensor and the key script take `--remote` to use the production API and keys (`.sensors/remote/`).
 
 ## Secrets
 
