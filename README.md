@@ -36,7 +36,7 @@ flowchart LR
 
 ## Links
 
-- Website and API: https://svitlo.yanasworks.com (API live; website coming in Phase 5)
+- Website: https://svitlo.yanasworks.com (for example, [Revutskoho 54a](https://svitlo.yanasworks.com/b/revutskogo-54a))
 - Telegram bot: [@yhLightBot](https://t.me/yhLightBot)
 
 ## Roadmap
