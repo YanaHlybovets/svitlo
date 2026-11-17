@@ -2,25 +2,35 @@
 <html lang="uk">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Світло</title>
-  <meta name="description" content="Чи є світло у вашому будинку: статус у реальному часі та сповіщення в Telegram.">
-  <style>
-    :root { color-scheme: light dark; --bg: #fffdf5; --fg: #1d1b16; --muted: #6b665c; --accent: #f2b705; }
-    @media (prefers-color-scheme: dark) { :root { --bg: #15140f; --fg: #f3f0e6; --muted: #a49f93; } }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
-           font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 0 16px; }
-    main { max-width: 32rem; text-align: center; }
-    h1 { font-size: 2.5rem; margin: 0 0 .5rem; }
-    h1 span { color: var(--accent); }
-    p { color: var(--muted); margin: .25rem 0; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf8f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16150f" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/app.css">
+  <title>Світло — чи є світло у вашому будинку</title>
+  <meta name="description" content="Чи є світло у вашому будинку: статус у реальному часі від датчика в будинку та сповіщення в Telegram.">
+  <script type="module" src="/assets/home.js"></script>
 </head>
 <body>
-  <main>
-    <h1><span>💡</span> Світло</h1>
-    <p>Чи є світло у вашому будинку — у реальному часі, зі сповіщеннями в Telegram.</p>
-    <p>Сайт скоро запрацює.</p>
+  <header class="site-header">
+    <a class="logo" href="/"><span aria-hidden="true">💡</span> Світло</a>
+    <button id="lang-switch" class="lang" type="button">EN</button>
+  </header>
+  <main class="page">
+    <p class="tagline" data-i18n="tagline">Чи є світло у вашому будинку — у реальному часі</p>
+    <label class="search">
+      <span class="visually-hidden" data-i18n="searchLabel">Пошук адреси</span>
+      <input id="search" type="search" autocomplete="off" spellcheck="false" maxlength="64"
+             data-i18n-placeholder="searchPlaceholder" placeholder="Вулиця й номер, наприклад «Ревуцького 54а»">
+    </label>
+    <div id="buildings" aria-live="polite"><p class="muted">Завантаження…</p></div>
+    <p id="updated" class="muted small"></p>
   </main>
+  <footer class="site-footer">
+    <p data-i18n="footerSource">Дані надходять від датчика в самому будинку, а не з графіків ДТЕК.</p>
+    <p><a href="https://t.me/yhLightBot" rel="noopener" data-i18n="footerBot">Сповіщення в Telegram</a> · <a href="https://github.com/YanaHlybovets/svitlo" rel="noopener" data-i18n="footerCode">Код проєкту</a></p>
+  </footer>
 </body>
 </html>
