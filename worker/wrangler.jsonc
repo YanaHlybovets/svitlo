@@ -5,13 +5,24 @@
   "compatibility_date": "2026-11-01",
   "observability": { "enabled": true },
 
-  // D1 database. database_id is a placeholder until the remote database is
-  // created in Step 4 (`wrangler d1 create svitlo-db`); local dev ignores it.
+  // One Worker serves the whole site: static files from ../web (free, not
+  // counted as Worker requests) and the code for /api and /tg only.
+  // workers.dev is off: the edge cache does not work there.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "svitlo.yanasworks.com", "custom_domain": true }],
+  "assets": {
+    "directory": "../web",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/tg/*"]
+  },
+
+  // D1 database (production in region EEUR). Local dev uses a local copy.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "svitlo-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "4be4e6b2-5b65-452d-bee1-b750fab3dc4e",
       "migrations_dir": "migrations"
     }
   ],

@@ -30,13 +30,13 @@ flowchart LR
 | Folder | What's inside |
 |---|---|
 | [`worker/`](worker/) | Cloudflare Worker: sensor API, cron status logic, queue fan-out, Telegram bot webhook |
-| [`web/`](web/) | Static website (Cloudflare Pages, PWA) |
+| [`web/`](web/) | Static website (served by the Worker as static assets, PWA) |
 | [`firmware/`](firmware/) | ESP32 sensor firmware |
 | [`docs/`](docs/) | Architecture, decision records, runbook |
 
 ## Links
 
-- Website: `https://svitlo.yanasworks.com` *(coming in Phase 5)*
+- Website and API: https://svitlo.yanasworks.com (API live; website coming in Phase 5)
 - Telegram bot: *(coming in Phase 4)*
 
 ## Roadmap
