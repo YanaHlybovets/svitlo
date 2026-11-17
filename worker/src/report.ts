@@ -13,7 +13,9 @@
 // the sensor's, plus a grid_changes row when the grid state changed. The cron
 // job decides building status from those.
 
+import { runStatus } from "./cron.ts";
 import { decryptSensorKey, fromHex, importHmacKey } from "./crypto.ts";
+import { OFF_CONFIRM_S, ON_CONFIRM_S } from "./status.ts";
 
 export const MAX_BODY_BYTES = 1024;
 export const MAX_CLOCK_SKEW_S = 60;
@@ -108,7 +110,7 @@ const status = (code: number) => new Response(null, { status: code });
 // Every authentication failure gets the same answer, so it reveals nothing.
 const unauthorized = () => status(401);
 
-export async function handleReport(request: Request, env: Env): Promise<Response> {
+export async function handleReport(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const body = await readBody(request, MAX_BODY_BYTES);
   if (body === null) return status(413);
 
@@ -122,10 +124,10 @@ export async function handleReport(request: Request, env: Env): Promise<Response
   if (Math.abs(now - report.ts) > MAX_CLOCK_SKEW_S) return unauthorized();
 
   const sensor = await env.DB.prepare(
-    "SELECT key_encrypted, grid, grid_changed_at FROM sensors WHERE id = ? AND enabled = 1",
+    "SELECT key_encrypted, building_id, grid, grid_changed_at FROM sensors WHERE id = ? AND enabled = 1",
   )
     .bind(report.sensor_id)
-    .first<{ key_encrypted: string; grid: string | null; grid_changed_at: number | null }>();
+    .first<{ key_encrypted: string; building_id: number; grid: string | null; grid_changed_at: number | null }>();
   if (sensor === null) return unauthorized();
 
   const key = await hmacKeyFor(env, report.sensor_id, sensor.key_encrypted);
@@ -165,5 +167,16 @@ export async function handleReport(request: Request, env: Env): Promise<Response
   const [result] = await env.DB.batch(statements);
   if (result?.meta.changes !== 1) return unauthorized();
 
+  // Fast path: once this report could confirm a change, decide now instead of
+  // waiting up to a minute for the cron job. OFF alerts then go out about 30 s
+  // after the outage begins. Runs after the response; the cron job stays the safety net.
+  const confirmAfter = report.grid === "off" ? OFF_CONFIRM_S : ON_CONFIRM_S;
+  if (report.ts - since >= confirmAfter) {
+    ctx.waitUntil(
+      runStatus(env, { buildingId: sensor.building_id }).catch((error: unknown) =>
+        console.error(JSON.stringify({ msg: "fast_path_error", error: String(error) })),
+      ),
+    );
+  }
   return status(204);
 }

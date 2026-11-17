@@ -3,7 +3,7 @@ import { env, exports } from "cloudflare:workers";
 import { beforeEach, describe, expect, it } from "vitest";
 import { runStatusCron } from "../src/cron.ts";
 import worker from "../src/index.ts";
-import { addSensor, BASE, nowS, resetState, sendReport } from "./helpers.ts";
+import { addSensor, BASE, nowS, recordReport, resetState } from "./helpers.ts";
 
 beforeEach(resetState);
 
@@ -28,17 +28,17 @@ describe("status cron", () => {
   });
 
   it("follows a full outage: first status, off, back on", async () => {
-    const key = await addSensor();
+    await addSensor();
     const t = nowS();
 
     // Power on for 2 minutes: the first status, not alerted.
-    await sendReport(key, { grid: "on", since: t - 120, ts: t - 60 });
+    await recordReport("on", t - 120, t - 60);
     expect(await runStatusCron(env, t - 60)).toMatchObject([{ status: "on", notify: false }]);
 
     // Power off, confirmed 30 s later.
-    await sendReport(key, { grid: "off", since: t - 40, ts: t - 40 });
+    await recordReport("off", t - 40, t - 40);
     expect(await runStatusCron(env, t - 40)).toEqual([]); // not confirmed yet
-    await sendReport(key, { grid: "off", since: t - 40, ts: t - 10 });
+    await recordReport("off", t - 40, t - 10);
     expect(await runStatusCron(env, t - 10)).toMatchObject([{ status: "off", notify: true, prevDuration: 80 }]);
     expect(await building()).toEqual({ status: "off", status_since: t - 40, definite_status: "off", definite_since: t - 40 });
 
@@ -46,7 +46,7 @@ describe("status cron", () => {
     expect(await runStatusCron(env, t - 5)).toEqual([]);
 
     // Power back for 60 s: ON with the outage length.
-    await sendReport(key, { grid: "on", since: t, ts: t });
+    await recordReport("on", t, t);
     expect(await runStatusCron(env, t + 60)).toMatchObject([{ status: "on", notify: true, prevDuration: 40 }]);
 
     expect(await events()).toEqual([
@@ -57,9 +57,9 @@ describe("status cron", () => {
   });
 
   it("marks a silent sensor NO DATA, then restores ON without an alert", async () => {
-    const key = await addSensor();
+    await addSensor();
     const t = nowS();
-    await sendReport(key, { grid: "on", since: t - 600, ts: t });
+    await recordReport("on", t - 600, t);
     await runStatusCron(env, t);
 
     expect(await runStatusCron(env, t + 181)).toMatchObject([{ status: "no_data", notify: false }]);
@@ -74,18 +74,18 @@ describe("status cron", () => {
   });
 
   it("does not alert during maintenance", async () => {
-    const key = await addSensor();
+    await addSensor();
     const t = nowS();
-    await sendReport(key, { grid: "on", since: t - 600, ts: t - 60 });
+    await recordReport("on", t - 600, t - 60);
     await runStatusCron(env, t - 60);
     await env.DB.exec("UPDATE buildings SET maintenance = 1");
-    await sendReport(key, { grid: "off", since: t - 40, ts: t });
+    await recordReport("off", t - 40, t);
     expect(await runStatusCron(env, t)).toMatchObject([{ status: "off", notify: false }]);
   });
 
   it("runs from the scheduled handler", async () => {
-    const key = await addSensor();
-    await sendReport(key, { grid: "on", since: nowS() - 600, ts: nowS() });
+    await addSensor();
+    await recordReport("on", nowS() - 600, nowS());
     const ctx = createExecutionContext();
     await worker.scheduled(createScheduledController({ cron: "* * * * *" }), env, ctx);
     await waitOnExecutionContext(ctx);
