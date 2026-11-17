@@ -9,8 +9,9 @@
 //
 // Times are Unix seconds. A report is accepted only if its signature is valid,
 // its ts is within 60 s of server time, and its ts is later than the last
-// accepted one (replay guard, see docs/decisions/0002). It writes exactly one
-// row: the sensor's. The cron job decides building status from that row.
+// accepted one (replay guard, see docs/decisions/0002). It writes one row,
+// the sensor's, plus a grid_changes row when the grid state changed. The cron
+// job decides building status from those.
 
 import { decryptSensorKey, fromHex, importHmacKey } from "./crypto.ts";
 
@@ -120,28 +121,49 @@ export async function handleReport(request: Request, env: Env): Promise<Response
   const now = Math.floor(Date.now() / 1000);
   if (Math.abs(now - report.ts) > MAX_CLOCK_SKEW_S) return unauthorized();
 
-  const sensor = await env.DB.prepare("SELECT key_encrypted FROM sensors WHERE id = ? AND enabled = 1")
+  const sensor = await env.DB.prepare(
+    "SELECT key_encrypted, grid, grid_changed_at FROM sensors WHERE id = ? AND enabled = 1",
+  )
     .bind(report.sensor_id)
-    .first<{ key_encrypted: string }>();
+    .first<{ key_encrypted: string; grid: string | null; grid_changed_at: number | null }>();
   if (sensor === null) return unauthorized();
 
   const key = await hmacKeyFor(env, report.sensor_id, sensor.key_encrypted);
   if (!(await crypto.subtle.verify("HMAC", key, signature, body))) return unauthorized();
 
-  // One write. The last_ts condition makes replays (and out-of-order copies) a no-op.
-  const result = await env.DB.prepare(
+  // A new grid state never starts before the previous one (guards against a
+  // sensor clock that was reset). The same state with an older since is ignored.
+  const prevSince = sensor.grid_changed_at;
+  const gridChanged = sensor.grid !== report.grid;
+  const since = Math.max(report.since, prevSince ?? 0);
+  const newPeriod = gridChanged || prevSince === null || report.since > prevSince;
+
+  // The last_ts condition makes replays (and out-of-order copies) a no-op.
+  const update = env.DB.prepare(
     `UPDATE sensors
         SET last_seen = ?, last_ts = ?, grid = ?, grid_changed_at = ?,
             battery_mv = ?, wifi_rssi = ?, firmware = COALESCE(?, firmware)
       WHERE id = ? AND enabled = 1 AND (last_ts IS NULL OR last_ts < ?)`,
   )
     .bind(
-      now, report.ts, report.grid, report.since,
+      now, report.ts, report.grid, since,
       report.battery_mv, report.wifi_rssi, report.fw,
       report.sensor_id, report.ts,
-    )
-    .run();
-  if (result.meta.changes !== 1) return unauthorized();
+    );
+
+  const statements = [update];
+  if (newPeriod) {
+    // Logged only if the update above was accepted (last_ts now equals this ts);
+    // a replay hits the UNIQUE key and is ignored.
+    statements.push(
+      env.DB.prepare(
+        `INSERT OR IGNORE INTO grid_changes (building_id, grid, at)
+         SELECT building_id, ?, ? FROM sensors WHERE id = ? AND last_ts = ?`,
+      ).bind(report.grid, since, report.sensor_id, report.ts),
+    );
+  }
+  const [result] = await env.DB.batch(statements);
+  if (result?.meta.changes !== 1) return unauthorized();
 
   return status(204);
 }
