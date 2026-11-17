@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The admin panel: a separate Worker, so the public site contains no admin code.
+  "name": "svitlo-admin",
+  "main": "src/admin/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "svitlo-admin.yanasworks.com", "custom_domain": true }],
+  // Every request runs the Worker first, so even the UI files need a valid Access login.
+  "assets": { "directory": "../admin", "binding": "ASSETS", "run_worker_first": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "svitlo-db",
+      "database_id": "4be4e6b2-5b65-452d-bee1-b750fab3dc4e",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

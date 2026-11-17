@@ -44,6 +44,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `npm run sensor-key -- add\|rotate <slug>` | Create a sensor or issue it a new key |
 | `npm run fake-sensor -- <sensor-id> [once on\|off \| attack]` | Send signed test reports |
 | `npm run telegram-setup` | Register the bot's webhook, command menu and descriptions |
+| `npm run dev:admin` / `npm run deploy:admin` | Admin panel locally (http://localhost:8788) / to production |
 | `npm run db:migrate:remote` | Apply migrations to the production database |
 | `npm run tail` | Live production logs |
 
@@ -58,6 +59,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `src/cron.ts` | Every-minute job: applies the rules, writes events |
 | `src/api.ts` | Public read-only API with edge caching |
 | `src/alerts.ts` | Alert queue: enqueue, deliver, quiet hours, admin alerts |
+| `src/admin/` | Admin Worker (`svitlo-admin`): Access token check, admin API ([ADR 0007](../docs/decisions/0007-admin-panel.md)) |
 | `src/telegram/` | Bot: `bot.ts` (commands and buttons), `text.ts` (Ukrainian/English texts, Kyiv time, alert format), `search.ts` (address search), `webhook.ts` |
 | `src/crypto.ts` | HMAC signing and AES-GCM key encryption (shared with scripts) |
 | `scripts/` | `sensor-key.ts`, `fake-sensor.ts` (run with Node 22.18+, no build step) |

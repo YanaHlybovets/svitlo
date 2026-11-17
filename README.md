@@ -32,6 +32,7 @@ flowchart LR
 | [`worker/`](worker/) | Cloudflare Worker: sensor API, cron status logic, queue fan-out, Telegram bot webhook |
 | [`web/`](web/) | Static website (served by the Worker as static assets, PWA) |
 | [`firmware/`](firmware/) | ESP32 sensor firmware |
+| [`admin/`](admin/) | Admin panel UI (behind Cloudflare Access) |
 | [`docs/`](docs/) | Architecture, decision records, runbook |
 
 ## Links

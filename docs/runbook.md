@@ -23,14 +23,27 @@ npx wrangler deploy --secrets-file ~/.svitlo/production.json
 
 Check: `curl https://svitlo.yanasworks.com/api/v1/health` returns `{"ok":true}`.
 
+## Admin panel
+
+https://svitlo-admin.yanasworks.com, behind Cloudflare Access (one-time code to your email).
+
+- Deploy: `cd worker && npm run deploy:admin` (uses `~/.svitlo/admin.json`: `MASTER_KEY`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ADMIN_EMAILS`).
+- Locally: `npm run dev:admin`, then open http://localhost:8788.
+- Access setup (once): Zero Trust → Access → Applications → Self-hosted, domain `svitlo-admin.yanasworks.com`, policy Allow → Emails → your email, login method One-time PIN. Put the team domain and the application's AUD tag in `~/.svitlo/admin.json`, then deploy.
+
 ## Add a building and its sensor
 
-1. Add the building row: a migration for now, the admin panel later (Step 8).
-2. `MASTER_KEY=… npm run sensor-key -- add <slug> --remote`. This prints the key once and saves it to `.sensors/remote/`.
+1. Admin panel → **Додати будинок**.
+2. On its card → **➕ Створити датчик**. Copy the key shown (it appears once).
 3. Flash the sensor ID and key into the device.
-4. Test with the fake sensor first: `npm run fake-sensor -- s-<slug> attack --remote`.
+4. Watch **Останній звіт** on the card; problems show in red.
+
+Without the admin panel: `MASTER_KEY=… npm run sensor-key -- add <slug> --remote` (the building must exist).
 
 ## Disable a lost sensor / rotate its key
+
+In the admin panel: **Вимкнути датчик**, then **🔑 Новий ключ**, re-flash, then **Увімкнути датчик**. From the command line:
+
 
 ```sh
 npx wrangler d1 execute svitlo-db --remote --command "UPDATE sensors SET enabled = 0 WHERE id = 's-<slug>'"

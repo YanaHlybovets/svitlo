@@ -5,3 +5,10 @@ TELEGRAM_BOT_TOKEN=""
 TELEGRAM_WEBHOOK_SECRET="local-dev-secret"
 # Your own chat ID, to receive sensor requests (optional)
 ADMIN_CHAT_ID=""
+
+# Admin panel (production values live in ~/.svitlo/admin.json)
+ACCESS_TEAM_DOMAIN=""
+ACCESS_AUD=""
+ADMIN_EMAILS=""
+# Local only: skip Cloudflare Access on localhost. Never set in production.
+DEV_NO_ACCESS="1"

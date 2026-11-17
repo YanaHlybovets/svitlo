@@ -155,3 +155,33 @@ export async function deliver(m: AlertMessage, env: Env, deps: DeliverDeps): Pro
     done,
   ]);
 }
+
+export const LOW_BATTERY_MV = 3400;
+export const BATTERY_OK_MV = 3700;
+
+/** Tells the admin once when a sensor's battery runs low; re-arms when it recovers. */
+export async function batteryAlerts(env: Env, tg: TelegramClient): Promise<number> {
+  const { results } = await env.DB.prepare(
+    `SELECT s.id, s.battery_mv, s.low_battery_alerted, b.address_uk, b.address_en
+       FROM sensors s JOIN buildings b ON b.id = s.building_id
+      WHERE s.enabled = 1 AND s.battery_mv IS NOT NULL
+        AND ((s.battery_mv < ? AND s.low_battery_alerted = 0) OR (s.battery_mv >= ? AND s.low_battery_alerted = 1))`,
+  )
+    .bind(LOW_BATTERY_MV, BATTERY_OK_MV)
+    .all<{ id: string; battery_mv: number; low_battery_alerted: number; address_uk: string; address_en: string }>();
+
+  const admin = Number(env.ADMIN_CHAT_ID);
+  let sent = 0;
+  for (const r of results) {
+    const low = r.low_battery_alerted === 0;
+    if (low && Number.isSafeInteger(admin) && admin !== 0) {
+      await tg.call("sendMessage", {
+        chat_id: admin,
+        text: `🔋 ${shortAddress(r, "uk")}: низький заряд батареї датчика (${r.battery_mv} мВ). Перевірте, чи живиться розетка.`,
+      });
+      sent++;
+    }
+    await env.DB.prepare("UPDATE sensors SET low_battery_alerted = ? WHERE id = ?").bind(low ? 1 : 0, r.id).run();
+  }
+  return sent;
+}

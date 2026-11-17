@@ -3,7 +3,7 @@
 // Writes happen only when a status changes, guarded by buildings.rev so two
 // concurrent evaluations never record the same change twice (ADR 0006).
 
-import { enqueueAlerts, notifyAdmin, type AlertMessage, type StatusChange } from "./alerts.ts";
+import { batteryAlerts, enqueueAlerts, notifyAdmin, type AlertMessage, type StatusChange } from "./alerts.ts";
 import { evaluate, type Change, type Grid, type Status } from "./status.ts";
 import { telegramClient, type TelegramClient } from "./telegram/client.ts";
 
@@ -131,9 +131,10 @@ export async function runStatus(env: Env, options: RunOptions = {}): Promise<Sta
   return committed;
 }
 
-/** The every-minute job: all buildings, plus hourly clean-up of old delivery records. */
+/** The every-minute job: all buildings, low-battery checks, and hourly clean-up of old delivery records. */
 export async function runStatusCron(env: Env, now = Math.floor(Date.now() / 1000), options: Omit<RunOptions, "now" | "buildingId"> = {}) {
   const changes = await runStatus(env, { ...options, now });
+  await batteryAlerts(env, options.tg ?? telegramClient(env.TELEGRAM_BOT_TOKEN));
   if (Math.floor(now / 60) % 60 === 0) {
     await env.DB.prepare("DELETE FROM alert_batches WHERE done_at < ?").bind(now - 7 * 86_400).run();
   }

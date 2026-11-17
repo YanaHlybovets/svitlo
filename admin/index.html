@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Світло · Адмін</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin.css">
+  <script type="module" src="/admin.js"></script>
+</head>
+<body>
+  <header class="top">
+    <strong>💡 Світло · Адмін</strong>
+    <span id="me" class="muted"></span>
+    <a href="https://svitlo.yanasworks.com" rel="noopener">Сайт ↗</a>
+  </header>
+  <main>
+    <div id="error" class="error" hidden></div>
+    <section id="key-panel" class="key-panel" hidden aria-live="assertive"></section>
+    <section class="stats" id="stats"></section>
+
+    <section>
+      <h2>Будинки</h2>
+      <div id="buildings"></div>
+    </section>
+
+    <section>
+      <h2>Додати будинок</h2>
+      <form id="add-form" class="add-form" autocomplete="off">
+        <label>Адреса українською <input name="address_uk" required maxlength="100" placeholder="вул. Ревуцького, 54а"></label>
+        <label>Адреса англійською <input name="address_en" required maxlength="100" placeholder="Revutskoho St, 54a"></label>
+        <label>Slug (для посилань) <input name="slug" required maxlength="48" pattern="[a-z0-9](?:[a-z0-9-]*[a-z0-9])?" placeholder="revutskogo-54a"></label>
+        <label>Район <select name="district" id="district"></select></label>
+        <button type="submit">Додати</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Запити на датчики</h2>
+      <div id="requests"></div>
+    </section>
+
+    <section>
+      <h2>Журнал дій</h2>
+      <div id="audit"></div>
+    </section>
+  </main>
+</body>
+</html>

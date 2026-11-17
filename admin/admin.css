@@ -1,0 +1,44 @@
+:root { color-scheme: light dark; --bg: #f6f4ee; --surface: #fff; --ink: #1f1d18; --muted: #6a655a; --line: #e2dccd; --accent: #1f1d18; --bad: #c0392b; --on: #f6c445; --off: #2c3140; }
+@media (prefers-color-scheme: dark) { :root { --bg: #16150f; --surface: #211f18; --ink: #f3efe4; --muted: #aaa392; --line: #37342a; --accent: #f6c445; --bad: #ff7a5c; --off: #3a4153; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.top { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 0.9rem 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.top a { margin-left: auto; color: inherit; }
+main { max-width: 64rem; margin: 0 auto; padding: 1rem 16px 3rem; }
+h2 { font-size: 1rem; margin: 2rem 0 0.75rem; }
+h3 { margin: 0; font-size: 1.05rem; }
+p { margin: 0.2rem 0; }
+.muted { color: var(--muted); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; }
+.error { margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 10px; background: color-mix(in srgb, var(--bad) 15%, var(--surface)); border: 1px solid var(--bad); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 1rem; display: grid; }
+.stat-value { font-size: 1.5rem; font-weight: 700; }
+.building { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; }
+.building.inactive { opacity: 0.6; }
+.building-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.tags { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: start; }
+.tag { font-size: 0.85rem; padding: 0.1rem 0.55rem; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.tag.status-on { background: var(--on); color: #241c03; border-color: transparent; }
+.tag.status-off { background: var(--off); color: #f4f1ea; border-color: transparent; }
+.tag.warn { border-color: var(--bad); }
+.health { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.5rem 1rem; margin: 0.9rem 0; }
+.health dt { font-size: 0.8rem; color: var(--muted); }
+.health dd { margin: 0; }
+.health .bad dd { color: var(--bad); font-weight: 600; }
+.row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+button { font: inherit; padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+button.secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+.add-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.75rem; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }
+.add-form label { display: grid; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); }
+input, select { font: inherit; padding: 0.5rem 0.6rem; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.list li { display: flex; justify-content: space-between; gap: 1rem; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem 0.9rem; }
+.audit li { display: grid; gap: 0.1rem; font-size: 0.85rem; }
+.audit li span:last-child { overflow-wrap: anywhere; }
+.key-panel { margin-top: 1rem; padding: 1rem 1.2rem; border-radius: 12px; border: 2px solid var(--on); background: var(--surface); }
+.key-panel h2 { margin-top: 0; }
+.key-panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; }
+.key-panel dd { margin: 0; overflow-wrap: anywhere; }
+.key { font-size: 1rem; user-select: all; }
