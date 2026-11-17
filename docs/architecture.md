@@ -27,6 +27,8 @@ Implemented in `worker/src/status.ts` (a pure function with one test per row) an
 
 Durations are measured from the sensor's own timestamps, not from when the cron job noticed.
 
+The rules run every minute (cron), and also at once when a report could confirm a change (fast path). OFF alerts therefore arrive about 30–35 s after an outage begins, and ON alerts 60–90 s after power returns. Alerts go out through a queue ([ADR 0006](decisions/0006-alert-fan-out.md)).
+
 ## Data model (D1)
 
 `buildings`, `sensors`, `grid_changes`, `events`, `users`, `subscriptions`, `audit_log`. The schema lives in `worker/migrations/`.

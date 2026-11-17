@@ -46,6 +46,12 @@ Set up or refresh the webhook, commands and descriptions: `npm run telegram-setu
 
 **Receive "I want a sensor" requests:** add `"ADMIN_CHAT_ID": "<your chat id>"` to `~/.svitlo/production.json` and deploy with `--secrets-file`.
 
+## Alerts
+
+- Queue: `svitlo-alerts` (Cloudflare dashboard → Queues). It's created once with `npx wrangler queues create svitlo-alerts`.
+- Live logs while testing: `npm run tail`. Look for `status_change`, `alert_send_failed`, `alert_gave_up`, `alert_stale_dropped`.
+- Live test with the fake sensor: `npm run fake-sensor -- s-revutskogo-54a once off --remote`, then about 35 s later `npm run fake-sensor -- s-revutskogo-54a once off --for 35 --remote`. The OFF alert arrives within seconds of the second report.
+
 ## To do
 
 - [ ] Restore the D1 database: D1 Time Travel, `wrangler d1 time-travel restore svitlo-db --timestamp=…`

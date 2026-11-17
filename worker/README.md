@@ -57,6 +57,7 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `src/status.ts` | Status rules (pure function) |
 | `src/cron.ts` | Every-minute job: applies the rules, writes events |
 | `src/api.ts` | Public read-only API with edge caching |
+| `src/alerts.ts` | Alert queue: enqueue, deliver, quiet hours, admin alerts |
 | `src/telegram/` | Bot: `bot.ts` (commands and buttons), `text.ts` (Ukrainian/English texts, Kyiv time, alert format), `search.ts` (address search), `webhook.ts` |
 | `src/crypto.ts` | HMAC signing and AES-GCM key encryption (shared with scripts) |
 | `scripts/` | `sensor-key.ts`, `fake-sensor.ts` (run with Node 22.18+, no build step) |
@@ -72,7 +73,9 @@ The key is saved to `worker/.sensors/<sensor-id>.json` (git-ignored). Use `rotat
 | `POST /api/v1/report` | ✅ signed reports (see [ADR 0002](../docs/decisions/0002-signed-reports-replay-guard.md)) |
 | `GET /api/v1/buildings/:slug/history?days=7` | ✅ events and flickers, 1–30 days, cached 60 s |
 | `POST /tg/webhook` | ✅ Telegram bot @yhLightBot (secret-token header required) |
-| Cron, every minute | ✅ status logic ([ADR 0003](../docs/decisions/0003-grid-change-log.md)); alerts are queued in Step 6 |
+| Cron, every minute | ✅ status logic ([ADR 0003](../docs/decisions/0003-grid-change-log.md)) |
+| Fast path after a report | ✅ decides at once when a report confirms a change ([ADR 0006](../docs/decisions/0006-alert-fan-out.md)) |
+| Queue `svitlo-alerts` | ✅ alert fan-out: 40 chats per message, ≈25 msg/s, quiet hours, retries |
 
 ## Production
 

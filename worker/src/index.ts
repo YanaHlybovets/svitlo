@@ -1,5 +1,7 @@
 import { buildingHistory, listBuildings } from "./api.ts";
+import { deliver, type AlertMessage } from "./alerts.ts";
 import { runStatusCron } from "./cron.ts";
+import { telegramClient } from "./telegram/client.ts";
 import { handleReport } from "./report.ts";
 import { handleTelegramWebhook } from "./telegram/webhook.ts";
 
@@ -17,7 +19,7 @@ export default {
     const url = new URL(request.url);
     const { pathname } = url;
 
-    if (request.method === "POST" && pathname === "/api/v1/report") return handleReport(request, env);
+    if (request.method === "POST" && pathname === "/api/v1/report") return handleReport(request, env, ctx);
     if (request.method === "POST" && pathname === "/tg/webhook") return handleTelegramWebhook(request, env);
     if (request.method === "GET") {
       if (pathname === "/api/v1/health") {
@@ -33,4 +35,13 @@ export default {
   async scheduled(_controller, env, ctx): Promise<void> {
     ctx.waitUntil(runStatusCron(env).then(() => undefined));
   },
-} satisfies ExportedHandler<Env>;
+
+  // Alert fan-out: one queue message (up to 40 chats) per run.
+  async queue(batch, env): Promise<void> {
+    const tg = telegramClient(env.TELEGRAM_BOT_TOKEN);
+    for (const message of batch.messages) {
+      await deliver(message.body, env, { tg, queue: env.ALERTS });
+      message.ack();
+    }
+  },
+} satisfies ExportedHandler<Env, AlertMessage>;

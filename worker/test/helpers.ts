@@ -52,3 +52,21 @@ export async function sendReport(key: Uint8Array<ArrayBuffer>, overrides: Record
   const raw = reportBody(overrides);
   return sendRaw(raw, await signBody(key, raw));
 }
+
+/**
+ * Records a sensor report the way the report handler stores it, without the
+ * HTTP request and so without the fast path. For tests of the cron logic alone.
+ */
+export async function recordReport(grid: "on" | "off", since: number, ts: number): Promise<void> {
+  const prev = await env.DB.prepare("SELECT grid, grid_changed_at FROM sensors WHERE id = ?")
+    .bind(SENSOR)
+    .first<{ grid: string | null; grid_changed_at: number | null }>();
+  const statements = [
+    env.DB.prepare("UPDATE sensors SET grid = ?, grid_changed_at = ?, last_ts = ?, last_seen = ? WHERE id = ?")
+      .bind(grid, since, ts, ts, SENSOR),
+  ];
+  if (prev?.grid !== grid || prev?.grid_changed_at !== since) {
+    statements.push(env.DB.prepare("INSERT OR IGNORE INTO grid_changes (building_id, grid, at) VALUES (1, ?, ?)").bind(grid, since));
+  }
+  await env.DB.batch(statements);
+}

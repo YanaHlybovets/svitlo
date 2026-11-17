@@ -32,6 +32,13 @@
     { "name": "BOT_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
   ],
 
+  // Alert fan-out (Step 6): one message = up to 40 chats; one at a time keeps
+  // the send rate under Telegram's limit.
+  "queues": {
+    "producers": [{ "binding": "ALERTS", "queue": "svitlo-alerts" }],
+    "consumers": [{ "queue": "svitlo-alerts", "max_batch_size": 1, "max_retries": 3, "max_concurrency": 1 }]
+  },
+
   // Status logic runs every minute (Step 3).
   "triggers": { "crons": ["* * * * *"] }
 }
