@@ -166,6 +166,35 @@ async function load() {
   );
 }
 
+async function loadUsage() {
+  const box = $("usage");
+  let data;
+  try {
+    const res = await fetch("/api/usage", { headers: { accept: "application/json" } });
+    data = await res.json();
+  } catch {
+    box.replaceChildren(el("p", { class: "muted" }, "Не вдалося завантажити."));
+    return;
+  }
+  if (!data.configured) {
+    box.replaceChildren(el("p", { class: "muted" }, "Не налаштовано: потрібен токен CF_API_TOKEN (Account Analytics: Read)."));
+    return;
+  }
+  if (data.error) {
+    box.replaceChildren(el("p", { class: "muted" }, `Помилка Cloudflare API: ${data.error}`));
+    return;
+  }
+  box.replaceChildren(el("div", { class: "meters" }, data.metrics.map((m) => {
+    const pct = Math.min(100, Math.round(m.share * 1000) / 10);
+    const fill = el("span", { class: `meter-fill ${m.share >= 0.9 ? "bad" : m.share >= 0.7 ? "warn" : ""}` });
+    fill.style.width = `${pct}%`;
+    return el("div", { class: "meter-row" },
+      el("div", { class: "meter-label" }, el("span", {}, m.label), el("span", { class: "muted" }, `${m.used.toLocaleString("uk-UA")} / ${m.limit.toLocaleString("uk-UA")} · ${pct}%`)),
+      el("div", { class: "meter", role: "img", "aria-label": `${m.label}: ${pct}%` }, fill),
+    );
+  })));
+}
+
 $("add-form").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -188,4 +217,6 @@ document.querySelector('[name="slug"]').addEventListener("input", (e) => { e.tar
 
 api("GET", "/api/me").then((me) => { $("me").textContent = me.email; }).catch(() => {});
 load();
+loadUsage();
 setInterval(() => { if (!document.hidden) load(); }, 60_000);
+setInterval(() => { if (!document.hidden) loadUsage(); }, 300_000);

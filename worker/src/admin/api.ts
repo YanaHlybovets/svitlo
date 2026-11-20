@@ -3,6 +3,7 @@
 // in plain text.
 
 import { encryptSensorKey, randomKey, toBase64 } from "../crypto.ts";
+import { fetchUsage, shares, METRIC_LABELS } from "../usage.ts";
 
 export interface AdminEnv {
   DB: D1Database;
@@ -12,6 +13,9 @@ export interface AdminEnv {
   ACCESS_AUD: string;
   /** Comma-separated. */
   ADMIN_EMAILS: string;
+  /** Read-only Cloudflare API token (Account Analytics: Read) and account ID, for the usage panel. */
+  CF_API_TOKEN?: string;
+  CF_ACCOUNT_ID?: string;
   /** "1" only in local .dev.vars: skips Access on localhost. */
   DEV_NO_ACCESS?: string;
 }
@@ -69,6 +73,29 @@ async function overview(env: AdminEnv): Promise<Response> {
     audit: log?.results ?? [],
     districts: DISTRICTS,
   });
+}
+
+/** Today's usage against the free-plan limits; cached for 5 minutes. */
+async function usage(env: AdminEnv, url: URL): Promise<Response> {
+  if (!env.CF_API_TOKEN || !env.CF_ACCOUNT_ID) return json({ configured: false });
+  const cache = caches.default;
+  const key = new Request(`${url.origin}/api/usage`);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  let response: Response;
+  try {
+    const u = await fetchUsage(env.CF_API_TOKEN, env.CF_ACCOUNT_ID);
+    response = json({
+      configured: true,
+      date: u.date,
+      metrics: shares(u).map((s) => ({ ...s, label: METRIC_LABELS[s.metric] })),
+    });
+    response.headers.set("cache-control", "private, max-age=300");
+    await cache.put(key, response.clone());
+  } catch (error) {
+    response = json({ configured: true, error: String((error as Error).message ?? error) }, 502);
+  }
+  return response;
 }
 
 async function addBuilding(request: Request, env: AdminEnv, admin: string): Promise<Response> {
@@ -157,6 +184,7 @@ export async function handleAdminApi(request: Request, env: AdminEnv, admin: str
   if (request.method === "GET") {
     if (path === "/api/me") return json({ email: admin });
     if (path === "/api/overview") return overview(env);
+    if (path === "/api/usage") return usage(env, url);
     return fail(404, "not_found");
   }
 
