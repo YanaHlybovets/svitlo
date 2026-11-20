@@ -65,7 +65,13 @@ Set up or refresh the webhook, commands and descriptions: `npm run telegram-setu
 - Live logs while testing: `npm run tail`. Look for `status_change`, `alert_send_failed`, `alert_gave_up`, `alert_stale_dropped`.
 - Live test with the fake sensor: `npm run fake-sensor -- s-revutskogo-54a once off --remote`, then about 35 s later `npm run fake-sensor -- s-revutskogo-54a once off --for 35 --remote`. The OFF alert arrives within seconds of the second report.
 
+## Free-plan usage
+
+The admin panel shows today's usage against the free-plan daily limits (Worker requests 100k, D1 rows read 5M, D1 rows written 100k, queue operations 10k). Limits reset at 00:00 UTC (02:00 Kyiv). The cron job checks every 30 minutes, and sends the admin one Telegram message per metric per day once it passes 70%.
+
+- Needs a read-only API token: My Profile → API Tokens → Custom token, permission **Account → Account Analytics → Read**. Save it from the clipboard as `CF_API_TOKEN` in both `~/.svitlo/admin.json` and `~/.svitlo/production.json` (with `CF_ACCOUNT_ID`), then deploy both Workers.
+- **If a limit is hit:** D1 or Workers return errors until the reset. To lift the limits within minutes, with no code changes: Workers & Pages → Plans → **Workers Paid** ($5 a month).
+
 ## To do
 
 - [ ] Restore the D1 database: D1 Time Travel, `wrangler d1 time-travel restore svitlo-db --timestamp=…`
-- [ ] What to do when a free-plan daily limit is hit

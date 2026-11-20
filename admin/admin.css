@@ -42,3 +42,10 @@ input, select { font: inherit; padding: 0.5rem 0.6rem; border-radius: 8px; borde
 .key-panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; }
 .key-panel dd { margin: 0; overflow-wrap: anywhere; }
 .key { font-size: 1rem; user-select: all; }
+.small { font-size: 0.8rem; font-weight: 400; }
+.meters { display: grid; gap: 0.8rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }
+.meter-label { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.meter { height: 0.6rem; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+.meter-fill { display: block; height: 100%; background: #3fa66b; }
+.meter-fill.warn { background: #e0a100; }
+.meter-fill.bad { background: var(--bad); }

@@ -6,6 +6,7 @@
 import { batteryAlerts, enqueueAlerts, notifyAdmin, type AlertMessage, type StatusChange } from "./alerts.ts";
 import { evaluate, type Change, type Grid, type Status } from "./status.ts";
 import { telegramClient, type TelegramClient } from "./telegram/client.ts";
+import { usageAlerts } from "./usage.ts";
 
 interface BuildingRow {
   id: number;
@@ -135,6 +136,12 @@ export async function runStatus(env: Env, options: RunOptions = {}): Promise<Sta
 export async function runStatusCron(env: Env, now = Math.floor(Date.now() / 1000), options: Omit<RunOptions, "now" | "buildingId"> = {}) {
   const changes = await runStatus(env, { ...options, now });
   await batteryAlerts(env, options.tg ?? telegramClient(env.TELEGRAM_BOT_TOKEN));
+  // Every 30 minutes: free-plan usage check (alerts the admin at 70%).
+  if (Math.floor(now / 60) % 30 === 0) {
+    await usageAlerts(env, options.tg ?? telegramClient(env.TELEGRAM_BOT_TOKEN), now * 1000).catch((error: unknown) =>
+      console.error(JSON.stringify({ msg: "usage_check_failed", error: String(error) })),
+    );
+  }
   if (Math.floor(now / 60) % 60 === 0) {
     await env.DB.prepare("DELETE FROM alert_batches WHERE done_at < ?").bind(now - 7 * 86_400).run();
   }

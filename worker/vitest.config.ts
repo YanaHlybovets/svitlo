@@ -20,6 +20,8 @@ export default defineConfig(async () => {
           TELEGRAM_BOT_TOKEN: "test-token",
           TELEGRAM_WEBHOOK_SECRET: "test-webhook-secret",
           ADMIN_CHAT_ID: "999",
+          CF_API_TOKEN: "",
+          CF_ACCOUNT_ID: "",
         } },
       }),
     ],

@@ -12,3 +12,7 @@ ACCESS_AUD=""
 ADMIN_EMAILS=""
 # Local only: skip Cloudflare Access on localhost. Never set in production.
 DEV_NO_ACCESS="1"
+
+# Free-plan usage panel and 70% alert: read-only token (Account Analytics: Read) and account ID
+CF_API_TOKEN=""
+CF_ACCOUNT_ID=""
