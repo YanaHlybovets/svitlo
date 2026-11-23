@@ -35,7 +35,7 @@ Firmware: `cd firmware && ~/.platformio/penv/bin/pio run` (needs `include/secret
 - **Secrets** live in `~/.svitlo/production.json` (public Worker) and `~/.svitlo/admin.json` (admin Worker), never in the repo. Sensor keys: `worker/.sensors/` (git-ignored).
 - **Tests never reach the network**: fake Telegram clients in unit tests; the outbound interceptor in `vitest.config.ts` for everything else.
 - **User-facing texts are Ukrainian first**, with English; times are shown in Kyiv time (`Europe/Kyiv`).
-- **Flow:** branch → tests and typecheck → commit → PR → the user merges → deploy from `main` (pull first). Add or update an ADR for design decisions, and the runbook for operating procedures.
+- **Flow:** branch → tests and typecheck → commit → PR → the user merges → deploy from `main` with the project skill **`/deploy-svitlo`** (`.claude/skills/deploy-svitlo/`). Add or update an ADR for design decisions, and the runbook for operating procedures.
 - Check website changes with headless Chrome screenshots (light, dark, about 500 px and desktop) before opening a PR.
 
 ## Live
